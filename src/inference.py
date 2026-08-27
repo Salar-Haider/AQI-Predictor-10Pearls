@@ -173,11 +173,18 @@ def create_future_features():
         "timestamp"
     ).reset_index(drop=True)
 
-    current_hour = (
-        pd.Timestamp.now(tz=TIMEZONE)
-        .floor("h")
-        .tz_localize(None)
+    df["timestamp"] = pd.to_datetime(
+        df["timestamp"]
     )
+
+    current_hour = pd.Timestamp.now(
+        tz=TIMEZONE
+    ).floor("h")
+
+    if df["timestamp"].dt.tz is None:
+        df["timestamp"] = df["timestamp"].dt.tz_localize(
+            TIMEZONE
+        )
 
     df = df[
         df["timestamp"] >= current_hour
@@ -277,18 +284,17 @@ def get_recent_aqi_history(project):
     )
 
     df["timestamp"] = pd.to_datetime(
-        df["timestamp"]
+        df["timestamp"],
+        utc=True,
     )
 
     df = df.sort_values(
         "timestamp"
     )
 
-    current_hour = (
-        pd.Timestamp.now(tz=TIMEZONE)
-        .floor("h")
-        .tz_localize(None)
-    )
+    current_hour = pd.Timestamp.now(
+        tz="UTC"
+    ).floor("h")
 
     df = df[
         df["timestamp"] <= current_hour
