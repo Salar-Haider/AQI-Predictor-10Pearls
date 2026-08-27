@@ -132,6 +132,13 @@ def enforce_feature_types(df):
         "wind_v",
         "temperature_humidity",
         "aqi_change",
+        "aqi_lag_1",
+        "aqi_lag_3",
+        "aqi_lag_6",
+        "aqi_lag_12",
+        "aqi_lag_24",
+        "aqi_rolling_mean_6",
+        "aqi_rolling_mean_24",
     ]
 
     for column in integer_columns:
@@ -167,6 +174,9 @@ def create_features(df):
     df = add_weather_interaction(df)
     df = add_aqi_change(df)
 
+    # Add historical AQI information
+    df = add_aqi_lag_features(df)
+
     df = enforce_feature_types(df)
 
     return df
@@ -196,6 +206,35 @@ def load_and_create_features():
     )
 
     return df
+
+
+
+def add_aqi_lag_features(df):
+    """Add past AQI values and rolling averages."""
+
+    df["aqi_lag_1"] = df["us_aqi"].shift(1)
+    df["aqi_lag_3"] = df["us_aqi"].shift(3)
+    df["aqi_lag_6"] = df["us_aqi"].shift(6)
+    df["aqi_lag_12"] = df["us_aqi"].shift(12)
+    df["aqi_lag_24"] = df["us_aqi"].shift(24)
+
+    df["aqi_rolling_mean_6"] = (
+        df["us_aqi"]
+        .shift(1)
+        .rolling(window=6)
+        .mean()
+    )
+
+    df["aqi_rolling_mean_24"] = (
+        df["us_aqi"]
+        .shift(1)
+        .rolling(window=24)
+        .mean()
+    )
+
+    return df
+
+
 
 
 if __name__ == "__main__":
