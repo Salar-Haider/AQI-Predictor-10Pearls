@@ -4,9 +4,10 @@ requests
 scikit-learn
 xgboost
 shap
-streamlit
+streamlit==1.46.0
 plotly
 python-dotenv
 hopsworks
 pyarrow
 confluent-kafka
+protobuf>=4.25.4,<5

@@ -1,19 +1,16 @@
 # dashboard/app.py
 
-from pathlib import Path
+import os
 
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-
-FORECAST_PATH = Path(
-    "data/processed/islamabad_72_hour_forecast.csv"
-)
+from src.inference import run_forecast
 
 
 def get_aqi_category(aqi):
-    """Return AQI category text."""
+    """Return AQI category."""
 
     if aqi <= 50:
         return "Good"
@@ -33,25 +30,42 @@ def get_aqi_category(aqi):
     return "Hazardous"
 
 
-def load_forecast():
-    """Load the generated 72-hour forecast."""
+def configure_secrets():
+    """
+    Make Streamlit Cloud secrets available to
+    the existing inference code as environment variables.
+    """
 
-    if not FORECAST_PATH.exists():
-        st.error(
-            "Forecast file not found. "
-            "Run the inference pipeline first."
-        )
-        st.stop()
+    try:
+        if "HOPSWORKS_API_KEY" in st.secrets:
+            os.environ["HOPSWORKS_API_KEY"] = (
+                st.secrets["HOPSWORKS_API_KEY"]
+            )
 
-    df = pd.read_csv(
-        FORECAST_PATH
-    )
+        if "HOPSWORKS_PROJECT" in st.secrets:
+            os.environ["HOPSWORKS_PROJECT"] = (
+                st.secrets["HOPSWORKS_PROJECT"]
+            )
 
-    df["timestamp"] = pd.to_datetime(
-        df["timestamp"]
-    )
+    except FileNotFoundError:
+        # Local development can still use .env
+        pass
 
-    return df
+
+@st.cache_data(ttl=3600)
+def generate_forecast():
+    """
+    Run inference and cache the result for one hour.
+
+    This prevents Hopsworks/model/API calls every time
+    Streamlit reruns the page.
+    """
+
+    configure_secrets()
+
+    forecast_df = run_forecast()
+
+    return forecast_df
 
 
 def create_daily_summary(df):
@@ -100,15 +114,72 @@ st.write(
 )
 
 
-forecast_df = load_forecast()
+# --------------------------------------------------
+# Forecast
+# --------------------------------------------------
+
+with st.spinner(
+    "Generating latest 72-hour AQI forecast..."
+):
+
+    try:
+
+        forecast_df = generate_forecast()
+
+    except Exception as error:
+
+        st.error(
+            "Unable to generate the live forecast."
+        )
+
+        st.write(
+            "The cloud inference service could not "
+            "complete the prediction."
+        )
+
+        with st.expander(
+            "Technical details"
+        ):
+            st.code(str(error))
+
+        st.stop()
+
+
+forecast_df["timestamp"] = pd.to_datetime(
+    forecast_df["timestamp"]
+)
 
 daily_df = create_daily_summary(
     forecast_df
 )
 
 
-st.subheader("3-Day AQI Forecast")
+# --------------------------------------------------
+# Refresh button
+# --------------------------------------------------
 
+col1, col2 = st.columns(
+    [1, 5]
+)
+
+with col1:
+
+    if st.button(
+        "Refresh Forecast"
+    ):
+
+        generate_forecast.clear()
+
+        st.rerun()
+
+
+# --------------------------------------------------
+# Daily forecast
+# --------------------------------------------------
+
+st.subheader(
+    "3-Day AQI Forecast"
+)
 
 columns = st.columns(
     len(daily_df)
@@ -128,7 +199,9 @@ for index, row in daily_df.iterrows():
     with columns[index]:
 
         st.metric(
-            label=str(row["date"]),
+            label=str(
+                row["date"]
+            ),
             value=f"{average_aqi} AQI",
         )
 
@@ -147,7 +220,13 @@ for index, row in daily_df.iterrows():
         )
 
 
-st.subheader("72-Hour AQI Forecast")
+# --------------------------------------------------
+# 72-hour chart
+# --------------------------------------------------
+
+st.subheader(
+    "72-Hour AQI Forecast"
+)
 
 
 chart = px.line(
@@ -155,13 +234,18 @@ chart = px.line(
     x="timestamp",
     y="predicted_aqi",
     markers=True,
-    title="Predicted AQI Over the Next 72 Hours",
+    title=(
+        "Predicted AQI Over "
+        "the Next 72 Hours"
+    ),
 )
+
 
 chart.update_layout(
     xaxis_title="Time",
     yaxis_title="Predicted AQI",
 )
+
 
 st.plotly_chart(
     chart,
@@ -169,50 +253,65 @@ st.plotly_chart(
 )
 
 
-st.subheader("AQI Health Alert")
+# --------------------------------------------------
+# Health alert
+# --------------------------------------------------
+
+st.subheader(
+    "AQI Health Alert"
+)
 
 
-maximum_aqi = forecast_df[
-    "predicted_aqi"
-].max()
+maximum_aqi = (
+    forecast_df[
+        "predicted_aqi"
+    ].max()
+)
 
 
 if maximum_aqi > 300:
 
     st.error(
-        "Hazardous AQI is predicted during "
-        "the next 3 days."
+        "Hazardous AQI is predicted "
+        "during the next 3 days."
     )
 
 elif maximum_aqi > 200:
 
     st.error(
-        "Very unhealthy AQI is predicted during "
-        "the next 3 days."
+        "Very unhealthy AQI is predicted "
+        "during the next 3 days."
     )
 
 elif maximum_aqi > 150:
 
     st.warning(
-        "Unhealthy AQI is predicted during "
-        "the next 3 days."
+        "Unhealthy AQI is predicted "
+        "during the next 3 days."
     )
 
 elif maximum_aqi > 100:
 
     st.warning(
-        "AQI may be unhealthy for sensitive groups."
+        "AQI may be unhealthy "
+        "for sensitive groups."
     )
 
 else:
 
     st.success(
-        "AQI is expected to remain in the "
-        "Good to Moderate range."
+        "AQI is expected to remain "
+        "in the Good to Moderate range."
     )
 
 
-st.subheader("Hourly Forecast Data")
+# --------------------------------------------------
+# Hourly table
+# --------------------------------------------------
+
+st.subheader(
+    "Hourly Forecast Data"
+)
 
 
 display_df = forecast_df[
@@ -228,8 +327,11 @@ display_df = forecast_df[
 
 
 display_df["AQI Category"] = (
-    display_df["predicted_aqi"]
-    .apply(get_aqi_category)
+    display_df[
+        "predicted_aqi"
+    ].apply(
+        get_aqi_category
+    )
 )
 
 
