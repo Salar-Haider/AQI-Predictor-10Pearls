@@ -36,10 +36,10 @@ def connect_to_hopsworks():
     return project
 
 
-def upload_features():
-    """Upload processed Islamabad AQI features to Hopsworks."""
+def upload_dataframe(df):
+    """Upload a DataFrame to the Hopsworks Feature Store."""
 
-    df = pd.read_csv(PROCESSED_DATA_PATH)
+    df = df.copy()
 
     df["timestamp"] = pd.to_datetime(df["timestamp"])
 
@@ -48,25 +48,38 @@ def upload_features():
     feature_store = project.get_feature_store()
 
     feature_group = feature_store.get_or_create_feature_group(
-    name=FEATURE_GROUP_NAME,
-    version=FEATURE_GROUP_VERSION,
-    description="Hourly weather and air-quality features for Islamabad",
-    primary_key=["timestamp"],
-    event_time="timestamp",
-    online_enabled=False,
-    time_travel_format="HUDI",
-)
+        name=FEATURE_GROUP_NAME,
+        version=FEATURE_GROUP_VERSION,
+        description=(
+            "Hourly weather and air-quality features "
+            "for Islamabad"
+        ),
+        primary_key=["timestamp"],
+        event_time="timestamp",
+        online_enabled=False,
+        time_travel_format="HUDI",
+    )
 
     feature_group.insert(
-    df,
-    wait=True,
+        df,
+        wait=True,
     )
 
     print(
         f"Uploaded {len(df)} rows to "
-        f"{FEATURE_GROUP_NAME} version {FEATURE_GROUP_VERSION}"
+        f"{FEATURE_GROUP_NAME} version "
+        f"{FEATURE_GROUP_VERSION}"
     )
+    
+    
+    
+def upload_features():
+    """Upload normal processed feature data."""
 
+    df = pd.read_csv(PROCESSED_DATA_PATH)
+
+    upload_dataframe(df)
+    
 
 if __name__ == "__main__":
     upload_features()
