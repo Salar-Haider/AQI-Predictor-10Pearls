@@ -26,7 +26,7 @@ from src.features import (
 )
 
 
-MODEL_NAME = "islamabad_aqi_model"
+MODEL_NAME = "aqi_gradient_boosting"
 
 FEATURE_GROUP_NAME = "aqi_hourly_features"
 FEATURE_GROUP_VERSION = 4
