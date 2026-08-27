@@ -80,17 +80,21 @@ def generate_forecast():
 
 
 def create_daily_summary(df):
-    """Create daily AQI summary."""
+    """Split the 72-hour forecast into 3 x 24-hour periods."""
 
-    daily_df = df.copy()
+    daily_df = df.copy().reset_index(drop=True)
 
-    daily_df["date"] = (
-        daily_df["timestamp"].dt.date
-    )
+    daily_df["forecast_day"] = (
+        daily_df.index // 24
+    ) + 1
 
     daily = (
-        daily_df.groupby("date")
+        daily_df.groupby("forecast_day")
         .agg(
+            date=(
+                "timestamp",
+                "first",
+            ),
             average_aqi=(
                 "predicted_aqi",
                 "mean",
@@ -105,6 +109,10 @@ def create_daily_summary(df):
             ),
         )
         .reset_index()
+    )
+
+    daily["date"] = (
+        daily["date"].dt.date
     )
 
     return daily
@@ -210,8 +218,9 @@ for index, row in daily_df.iterrows():
     with columns[index]:
 
         st.metric(
-            label=str(
-                row["date"]
+            label=(
+                f"Day {int(row['forecast_day'])} "
+                f"— {row['date']}"
             ),
             value=f"{average_aqi} AQI",
         )
