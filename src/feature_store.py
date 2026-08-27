@@ -11,7 +11,7 @@ from src.features import enforce_feature_types
 
 
 FEATURE_GROUP_NAME = "aqi_hourly_features"
-FEATURE_GROUP_VERSION = 2
+FEATURE_GROUP_VERSION = 3
 
 
 def connect_to_hopsworks():
@@ -42,10 +42,10 @@ def upload_dataframe(df):
 
     df = df.copy()
 
-    # Make sure all features have consistent data types
+    # Keep data types consistent
     df = enforce_feature_types(df)
 
-    # Hopsworks event time
+    # Convert timestamp to datetime
     df["timestamp"] = pd.to_datetime(df["timestamp"])
 
     project = connect_to_hopsworks()
@@ -63,6 +63,10 @@ def upload_dataframe(df):
         event_time="timestamp",
         online_enabled=False,
         time_travel_format="HUDI",
+
+        # Disable automatic statistics because
+        # the Hopsworks statistics job is failing
+        statistics_config=False,
     )
 
     feature_group.insert(
