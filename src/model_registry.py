@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 MODEL_DIR = Path("models")
 
 MODEL_NAME = "aqi_gradient_boosting"
-MODEL_VERSION = 1
+
 
 
 def connect_to_hopsworks():
@@ -73,7 +73,6 @@ def register_model():
 
     model = model_registry.python.create_model(
         name=MODEL_NAME,
-        version=MODEL_VERSION,
         metrics={
             "rmse": best_metrics["rmse"],
             "mae": best_metrics["mae"],
@@ -86,13 +85,14 @@ def register_model():
         ),
     )
 
-    model.save(str(MODEL_DIR))
-
-    print(
-        f"Registered {MODEL_NAME} "
-        f"version {MODEL_VERSION}"
+    registered_model = model.save(
+        str(MODEL_DIR)
     )
 
+    print(
+        f"Registered {registered_model.name} "
+        f"version {registered_model.version}"
+    )
 
 if __name__ == "__main__":
     register_model()
