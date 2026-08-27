@@ -9,8 +9,9 @@ from dotenv import load_dotenv
 from src.config import PROCESSED_DATA_PATH
 from src.features import enforce_feature_types
 
+
 FEATURE_GROUP_NAME = "aqi_hourly_features"
-FEATURE_GROUP_VERSION = 1
+FEATURE_GROUP_VERSION = 2
 
 
 def connect_to_hopsworks():
@@ -22,10 +23,10 @@ def connect_to_hopsworks():
     project_name = os.getenv("HOPSWORKS_PROJECT")
 
     if not api_key:
-        raise ValueError("HOPSWORKS_API_KEY is missing from .env")
+        raise ValueError("HOPSWORKS_API_KEY is missing")
 
     if not project_name:
-        raise ValueError("HOPSWORKS_PROJECT is missing from .env")
+        raise ValueError("HOPSWORKS_PROJECT is missing")
 
     project = hopsworks.login(
         project=project_name,
@@ -40,9 +41,11 @@ def upload_dataframe(df):
     """Upload a DataFrame to the Hopsworks Feature Store."""
 
     df = df.copy()
-    
+
+    # Make sure all features have consistent data types
     df = enforce_feature_types(df)
 
+    # Hopsworks event time
     df["timestamp"] = pd.to_datetime(df["timestamp"])
 
     project = connect_to_hopsworks()
@@ -72,16 +75,15 @@ def upload_dataframe(df):
         f"{FEATURE_GROUP_NAME} version "
         f"{FEATURE_GROUP_VERSION}"
     )
-    
-    
-    
+
+
 def upload_features():
     """Upload normal processed feature data."""
 
     df = pd.read_csv(PROCESSED_DATA_PATH)
 
     upload_dataframe(df)
-    
+
 
 if __name__ == "__main__":
     upload_features()

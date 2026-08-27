@@ -1,5 +1,6 @@
-from pathlib import Path
+# src/features.py
 
+from pathlib import Path
 import math
 
 import pandas as pd
@@ -35,8 +36,10 @@ def add_season_feature(df):
     def get_season(month):
         if month in [12, 1, 2]:
             return 0
+
         if month in [3, 4, 5]:
             return 1
+
         if month in [6, 7, 8]:
             return 2
 
@@ -72,7 +75,7 @@ def add_wind_features(df):
 
 
 def add_weather_interaction(df):
-    """Add simple interaction between temperature and humidity."""
+    """Add interaction between temperature and humidity."""
 
     df["temperature_humidity"] = (
         df["temperature_2m"]
@@ -85,11 +88,65 @@ def add_weather_interaction(df):
 def add_aqi_change(df):
     """Add AQI change from the previous hour."""
 
-    df["aqi_change"] = (
-        df["us_aqi"].diff()
-    )
+    df["aqi_change"] = df["us_aqi"].diff()
 
+    # Only the first row has no previous AQI
     df["aqi_change"] = df["aqi_change"].fillna(0)
+
+    return df
+
+
+def enforce_feature_types(df):
+    """Keep feature data types consistent for Hopsworks."""
+
+    df = df.copy()
+
+    integer_columns = [
+        "hour",
+        "day_of_week",
+        "month",
+        "day_of_year",
+        "is_weekend",
+        "is_rush_hour",
+        "season",
+        "is_stagnant",
+    ]
+
+    float_columns = [
+        "temperature_2m",
+        "relative_humidity_2m",
+        "dew_point_2m",
+        "surface_pressure",
+        "precipitation",
+        "wind_speed_10m",
+        "wind_direction_10m",
+        "wind_gusts_10m",
+        "pm10",
+        "pm2_5",
+        "carbon_monoxide",
+        "nitrogen_dioxide",
+        "sulphur_dioxide",
+        "ozone",
+        "us_aqi",
+        "wind_u",
+        "wind_v",
+        "temperature_humidity",
+        "aqi_change",
+    ]
+
+    for column in integer_columns:
+        if column in df.columns:
+            df[column] = pd.to_numeric(
+                df[column],
+                errors="coerce",
+            ).astype("int64")
+
+    for column in float_columns:
+        if column in df.columns:
+            df[column] = pd.to_numeric(
+                df[column],
+                errors="coerce",
+            ).astype("float64")
 
     return df
 
@@ -123,44 +180,31 @@ def load_and_create_features():
     df = create_features(df)
 
     output_path = Path(PROCESSED_DATA_PATH)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    df.to_csv(output_path, index=False)
+    output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
-    print(f"Saved {len(df)} rows to {output_path}")
+    df.to_csv(
+        output_path,
+        index=False,
+    )
 
-    return df
-
-
-
-
-def enforce_feature_types(df):
-    """Keep feature data types consistent for Hopsworks."""
-
-    integer_columns = [
-        "relative_humidity_2m",
-        "wind_direction_10m",
-        "hour",
-        "day_of_week",
-        "month",
-        "day_of_year",
-        "is_weekend",
-        "is_rush_hour",
-        "season",
-        "is_stagnant",
-    ]
-
-    for column in integer_columns:
-        if column in df.columns:
-            df[column] = df[column].round().astype("int64")
+    print(
+        f"Saved {len(df)} rows to {output_path}"
+    )
 
     return df
-
 
 
 if __name__ == "__main__":
     features = load_and_create_features()
 
     print(features.head())
+
     print("\nColumns:")
     print(features.columns.tolist())
+
+    print("\nData types:")
+    print(features.dtypes)
