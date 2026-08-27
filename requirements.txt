@@ -6,5 +6,7 @@ xgboost
 shap
 streamlit
 plotly
-hopsworks
 python-dotenv
+hopsworks
+pyarrow
+confluent-kafka
