@@ -1,6 +1,8 @@
+
 import os
 import sys
 from pathlib import Path
+from textwrap import dedent
 
 import pandas as pd
 import plotly.express as px
@@ -444,34 +446,34 @@ current_color = get_aqi_color(
 # --------------------------------------------------
 
 st.markdown(
-    f"""
-    <div class="hero-card">
+    dedent(
+        f"""
+        <div class="hero-card">
+            <div class="dashboard-title">
+                ISLAMABAD, PAKISTAN · CURRENT AIR QUALITY
+            </div>
 
-        <div class="dashboard-title">
-            ISLAMABAD, PAKISTAN · CURRENT AIR QUALITY
+            <div class="hero-time">
+                UPDATED {current["time"]}
+            </div>
+
+            <div
+                class="hero-aqi"
+                style="color:{current_color};"
+            >
+                {current_aqi}
+            </div>
+
+            <div class="hero-category">
+                {current_category}
+            </div>
+
+            <div class="hero-message">
+                {current_message}
+            </div>
         </div>
-
-        <div class="hero-time">
-            UPDATED {current["time"]}
-        </div>
-
-        <div
-            class="hero-aqi"
-            style="color:{current_color};"
-        >
-            {current_aqi}
-        </div>
-
-        <div class="hero-category">
-            {current_category}
-        </div>
-
-        <div class="hero-message">
-            {current_message}
-        </div>
-
-    </div>
-    """,
+        """
+    ),
     unsafe_allow_html=True,
 )
 
@@ -479,7 +481,6 @@ st.markdown(
 # --------------------------------------------------
 # Current pollutant cards
 # --------------------------------------------------
-
 metric_columns = st.columns(
     4
 )
@@ -487,87 +488,94 @@ metric_columns = st.columns(
 
 with metric_columns[0]:
     st.markdown(
-        f"""
-        <div class="metric-card">
-            <div class="metric-label">
-                PM2.5
-            </div>
+        dedent(
+            f"""
+            <div class="metric-card">
+                <div class="metric-label">
+                    PM2.5
+                </div>
 
-            <div class="metric-value">
-                {current["pm2_5"]:.1f}
-            </div>
+                <div class="metric-value">
+                    {current["pm2_5"]:.1f}
+                </div>
 
-            <div class="metric-label">
-                μg/m³
+                <div class="metric-label">
+                    μg/m³
+                </div>
             </div>
-        </div>
-        """,
+            """
+        ),
         unsafe_allow_html=True,
     )
 
 
 with metric_columns[1]:
     st.markdown(
-        f"""
-        <div class="metric-card">
-            <div class="metric-label">
-                PM10
-            </div>
+        dedent(
+            f"""
+            <div class="metric-card">
+                <div class="metric-label">
+                    PM10
+                </div>
 
-            <div class="metric-value">
-                {current["pm10"]:.1f}
-            </div>
+                <div class="metric-value">
+                    {current["pm10"]:.1f}
+                </div>
 
-            <div class="metric-label">
-                μg/m³
+                <div class="metric-label">
+                    μg/m³
+                </div>
             </div>
-        </div>
-        """,
+            """
+        ),
         unsafe_allow_html=True,
     )
 
 
 with metric_columns[2]:
     st.markdown(
-        f"""
-        <div class="metric-card">
-            <div class="metric-label">
-                Nitrogen Dioxide
-            </div>
+        dedent(
+            f"""
+            <div class="metric-card">
+                <div class="metric-label">
+                    Nitrogen Dioxide
+                </div>
 
-            <div class="metric-value">
-                {current["nitrogen_dioxide"]:.1f}
-            </div>
+                <div class="metric-value">
+                    {current["nitrogen_dioxide"]:.1f}
+                </div>
 
-            <div class="metric-label">
-                μg/m³
+                <div class="metric-label">
+                    μg/m³
+                </div>
             </div>
-        </div>
-        """,
+            """
+        ),
         unsafe_allow_html=True,
     )
 
 
 with metric_columns[3]:
     st.markdown(
-        f"""
-        <div class="metric-card">
-            <div class="metric-label">
-                Ozone
-            </div>
+        dedent(
+            f"""
+            <div class="metric-card">
+                <div class="metric-label">
+                    Ozone
+                </div>
 
-            <div class="metric-value">
-                {current["ozone"]:.1f}
-            </div>
+                <div class="metric-value">
+                    {current["ozone"]:.1f}
+                </div>
 
-            <div class="metric-label">
-                μg/m³
+                <div class="metric-label">
+                    μg/m³
+                </div>
             </div>
-        </div>
-        """,
+            """
+        ),
         unsafe_allow_html=True,
     )
-
 
 # --------------------------------------------------
 # Forecast loading
