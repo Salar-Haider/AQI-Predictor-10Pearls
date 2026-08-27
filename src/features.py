@@ -174,8 +174,7 @@ def create_features(df):
     df = add_weather_interaction(df)
     df = add_aqi_change(df)
 
-    # Add historical AQI information
-    df = add_aqi_lag_features(df)
+
 
     df = enforce_feature_types(df)
 
