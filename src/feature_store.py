@@ -11,7 +11,7 @@ from src.features import enforce_feature_types
 
 
 FEATURE_GROUP_NAME = "aqi_hourly_features"
-FEATURE_GROUP_VERSION = 3
+FEATURE_GROUP_VERSION = 4
 
 
 def connect_to_hopsworks():
