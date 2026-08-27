@@ -3,6 +3,9 @@ name: Training Pipeline
 on:
   workflow_dispatch:
 
+  schedule:
+    - cron: "30 21 * * *"
+
 jobs:
   training:
     runs-on: ubuntu-latest

@@ -109,6 +109,18 @@ def fetch_and_save_data():
 
     df = df.sort_values("timestamp").reset_index(drop=True)
 
+    current_hour = (
+        pd.Timestamp.now(tz=TIMEZONE)
+        .floor("h")
+        .tz_localize(None)
+    )
+
+    df = df[
+        df["timestamp"] <= current_hour
+    ].tail(1)
+
+    df = df.reset_index(drop=True)
+
     output_path = Path(RAW_DATA_PATH)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 

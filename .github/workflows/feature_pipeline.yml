@@ -3,6 +3,9 @@ name: Feature Pipeline
 on:
   workflow_dispatch:
 
+  schedule:
+    - cron: "15 * * * *"
+
 jobs:
   feature-pipeline:
     runs-on: ubuntu-latest
