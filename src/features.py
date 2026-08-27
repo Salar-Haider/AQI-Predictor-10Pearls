@@ -110,6 +110,8 @@ def create_features(df):
     df = add_weather_interaction(df)
     df = add_aqi_change(df)
 
+    df = enforce_feature_types(df)
+
     return df
 
 
@@ -128,6 +130,32 @@ def load_and_create_features():
     print(f"Saved {len(df)} rows to {output_path}")
 
     return df
+
+
+
+
+def enforce_feature_types(df):
+    """Keep feature data types consistent for Hopsworks."""
+
+    integer_columns = [
+        "relative_humidity_2m",
+        "wind_direction_10m",
+        "hour",
+        "day_of_week",
+        "month",
+        "day_of_year",
+        "is_weekend",
+        "is_rush_hour",
+        "season",
+        "is_stagnant",
+    ]
+
+    for column in integer_columns:
+        if column in df.columns:
+            df[column] = df[column].round().astype("int64")
+
+    return df
+
 
 
 if __name__ == "__main__":

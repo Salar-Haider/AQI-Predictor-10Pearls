@@ -7,7 +7,7 @@ import pandas as pd
 from dotenv import load_dotenv
 
 from src.config import PROCESSED_DATA_PATH
-
+from src.features import enforce_feature_types
 
 FEATURE_GROUP_NAME = "aqi_hourly_features"
 FEATURE_GROUP_VERSION = 1
@@ -40,6 +40,8 @@ def upload_dataframe(df):
     """Upload a DataFrame to the Hopsworks Feature Store."""
 
     df = df.copy()
+    
+    df = enforce_feature_types(df)
 
     df["timestamp"] = pd.to_datetime(df["timestamp"])
 
