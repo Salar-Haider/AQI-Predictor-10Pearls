@@ -27,3 +27,9 @@ jobs:
           HOPSWORKS_PROJECT: ${{ secrets.HOPSWORKS_PROJECT }}
         run: |
           python -m src.inference
+
+      - name: Upload forecast artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: islamabad-aqi-forecast
+          path: data/processed/islamabad_72_hour_forecast.csv
