@@ -1,32 +1,56 @@
 # src/backfill.py
 
+from datetime import date, timedelta
 from pathlib import Path
-from src.feature_store import upload_dataframe
+
 import pandas as pd
 import requests
 
 from src.config import (
     AIR_QUALITY_API_URL,
+    HISTORICAL_WEATHER_API_URL,
     LATITUDE,
     LONGITUDE,
     TIMEZONE,
-    WEATHER_API_URL,
 )
+
 from src.features import create_features
+from src.feature_store import upload_dataframe
 
 
 BACKFILL_DAYS = 90
 
-BACKFILL_RAW_PATH = "data/raw/islamabad_backfill_raw.csv"
-BACKFILL_PROCESSED_PATH = "data/processed/islamabad_backfill_features.csv"
+BACKFILL_RAW_PATH = (
+    "data/raw/islamabad_backfill_raw.csv"
+)
+
+BACKFILL_PROCESSED_PATH = (
+    "data/processed/islamabad_backfill_features.csv"
+)
+
+
+def get_backfill_dates():
+    """Get the start and end dates for the 90-day backfill."""
+
+    end_date = date.today() - timedelta(days=1)
+
+    start_date = end_date - timedelta(
+        days=BACKFILL_DAYS - 1
+    )
+
+    return start_date, end_date
 
 
 def fetch_historical_weather():
-    """Fetch the previous 90 days of hourly weather data."""
+    """Fetch historical Islamabad weather from Open-Meteo."""
+
+    start_date, end_date = get_backfill_dates()
 
     params = {
         "latitude": LATITUDE,
         "longitude": LONGITUDE,
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
         "hourly": (
             "temperature_2m,"
             "relative_humidity_2m,"
@@ -37,13 +61,11 @@ def fetch_historical_weather():
             "wind_direction_10m,"
             "wind_gusts_10m"
         ),
-        "past_days": BACKFILL_DAYS,
-        "forecast_days": 0,
         "timezone": TIMEZONE,
     }
 
     response = requests.get(
-        WEATHER_API_URL,
+        HISTORICAL_WEATHER_API_URL,
         params=params,
         timeout=60,
     )
@@ -54,7 +76,7 @@ def fetch_historical_weather():
 
 
 def fetch_historical_air_quality():
-    """Fetch the previous 90 days of hourly air-quality data."""
+    """Fetch the previous 90 days of air-quality data."""
 
     params = {
         "latitude": LATITUDE,
@@ -85,33 +107,69 @@ def fetch_historical_air_quality():
 
 
 def json_to_dataframe(data):
-    """Convert Open-Meteo hourly JSON into a DataFrame."""
+    """Convert Open-Meteo hourly JSON to a DataFrame."""
 
-    df = pd.DataFrame(data["hourly"])
+    df = pd.DataFrame(
+        data["hourly"]
+    )
 
-    df["time"] = pd.to_datetime(df["time"])
+    df["time"] = pd.to_datetime(
+        df["time"]
+    )
 
     return df
 
 
 def create_backfill_dataset():
-    """Create raw and processed historical Islamabad datasets."""
+    """Create the historical Islamabad dataset."""
 
-    print("Fetching historical weather data...")
+    start_date, end_date = get_backfill_dates()
+
+    print(
+        f"Backfill period: "
+        f"{start_date} to {end_date}"
+    )
+
+    print(
+        "Fetching historical weather data..."
+    )
+
     weather_json = fetch_historical_weather()
 
-    print("Fetching historical air-quality data...")
-    air_quality_json = fetch_historical_air_quality()
+    print(
+        "Fetching historical air-quality data..."
+    )
 
-    weather_df = json_to_dataframe(weather_json)
-    air_quality_df = json_to_dataframe(air_quality_json)
+    air_quality_json = (
+        fetch_historical_air_quality()
+    )
+
+    weather_df = json_to_dataframe(
+        weather_json
+    )
+
+    air_quality_df = json_to_dataframe(
+        air_quality_json
+    )
 
     weather_df = weather_df.rename(
-        columns={"time": "timestamp"}
+        columns={
+            "time": "timestamp"
+        }
     )
 
     air_quality_df = air_quality_df.rename(
-        columns={"time": "timestamp"}
+        columns={
+            "time": "timestamp"
+        }
+    )
+
+    print(
+        f"Weather rows: {len(weather_df)}"
+    )
+
+    print(
+        f"Air-quality rows: {len(air_quality_df)}"
     )
 
     df = pd.merge(
@@ -121,18 +179,38 @@ def create_backfill_dataset():
         how="inner",
     )
 
-    df = df.sort_values("timestamp").reset_index(drop=True)
+    df = df.sort_values(
+        "timestamp"
+    ).reset_index(
+        drop=True
+    )
 
-    raw_path = Path(BACKFILL_RAW_PATH)
-    raw_path.parent.mkdir(parents=True, exist_ok=True)
+    raw_path = Path(
+        BACKFILL_RAW_PATH
+    )
 
-    df.to_csv(raw_path, index=False)
+    raw_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
-    print(f"Saved {len(df)} raw historical rows.")
+    df.to_csv(
+        raw_path,
+        index=False,
+    )
 
-    features_df = create_features(df)
+    print(
+        f"Saved {len(df)} raw historical rows."
+    )
 
-    processed_path = Path(BACKFILL_PROCESSED_PATH)
+    features_df = create_features(
+        df
+    )
+
+    processed_path = Path(
+        BACKFILL_PROCESSED_PATH
+    )
+
     processed_path.parent.mkdir(
         parents=True,
         exist_ok=True,
@@ -144,23 +222,32 @@ def create_backfill_dataset():
     )
 
     print(
-        f"Saved {len(features_df)} processed historical rows."
+        f"Saved {len(features_df)} "
+        f"processed historical rows."
     )
 
     return features_df
 
 
-
 def backfill_to_feature_store():
-    """Create historical features and upload them to Hopsworks."""
+    """Create historical data and upload it to Hopsworks."""
 
-    features_df = create_backfill_dataset()
+    features_df = (
+        create_backfill_dataset()
+    )
 
-    print("Uploading historical features to Hopsworks...")
+    print(
+        "Uploading historical features "
+        "to Hopsworks..."
+    )
 
-    upload_dataframe(features_df)
+    upload_dataframe(
+        features_df
+    )
 
-    print("Historical backfill completed.")
+    print(
+        "Historical backfill completed."
+    )
 
 
 if __name__ == "__main__":
