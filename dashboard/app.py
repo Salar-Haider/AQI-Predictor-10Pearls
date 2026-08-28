@@ -40,8 +40,7 @@ st.set_page_config(
 )
 
 
-minimum_aqi = row["minimum_aqi"]
-maximum_aqi = row["maximum_aqi"]
+
 
 
 # ==================================================
