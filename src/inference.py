@@ -210,7 +210,7 @@ def create_future_features():
 
 
 def download_best_model(project):
-    """Download the best AQI model from Hopsworks."""
+    """Download the best AQI model and metadata from Hopsworks."""
 
     model_registry = project.get_model_registry()
 
@@ -239,7 +239,27 @@ def download_best_model(project):
     )
 
     feature_files = list(
-        download_path.rglob("feature_columns.json")
+        download_path.rglob(
+            "feature_columns.json"
+        )
+    )
+
+    metrics_files = list(
+        download_path.rglob(
+            "metrics.json"
+        )
+    )
+
+    shap_files = list(
+        download_path.rglob(
+            "shap_importance.json"
+        )
+    )
+
+    best_info_files = list(
+        download_path.rglob(
+            "best_model_info.json"
+        )
     )
 
     if not model_files:
@@ -266,8 +286,46 @@ def download_best_model(project):
     ) as file:
         feature_columns = json.load(file)
 
-    return trained_model, feature_columns
+    metrics = None
 
+    if metrics_files:
+        with open(
+            metrics_files[0],
+            "r",
+        ) as file:
+            metrics = json.load(file)
+
+    shap_importance = None
+
+    if shap_files:
+        with open(
+            shap_files[0],
+            "r",
+        ) as file:
+            shap_importance = json.load(file)
+
+    best_model_info = None
+
+    if best_info_files:
+        with open(
+            best_info_files[0],
+            "r",
+        ) as file:
+            best_model_info = json.load(file)
+
+    metadata = {
+        "model_name": model.name,
+        "model_version": model.version,
+        "metrics": metrics,
+        "shap_importance": shap_importance,
+        "best_model_info": best_model_info,
+    }
+
+    return (
+        trained_model,
+        feature_columns,
+        metadata,
+    )
 
 def get_recent_aqi_history(project):
     """Get recent known AQI values from the Feature Store."""
@@ -440,9 +498,9 @@ def run_forecast():
 
     project = connect_to_hopsworks()
 
-    model, feature_columns = (
-        download_best_model(project)
-    )
+    (model,feature_columns,model_metadata,) = download_best_model(project)
+
+
 
     history = get_recent_aqi_history(
         project
@@ -479,7 +537,7 @@ def run_forecast():
         f"{FORECAST_PATH}"
     )
 
-    return forecast_df
+    return forecast_df, model_metadata
 
 
 if __name__ == "__main__":

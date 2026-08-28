@@ -1056,10 +1056,11 @@ with st.spinner(
 ):
 
     try:
+        (
+            forecast_df,
+            model_metadata,
+        ) = generate_forecast()
 
-        forecast_df = (
-            generate_forecast()
-        )
 
     except Exception as error:
 
@@ -1288,6 +1289,196 @@ st.plotly_chart(
     use_container_width=True,
 )
 
+
+
+
+# ==================================================
+# MODEL PERFORMANCE
+# ==================================================
+
+st.html(
+    """
+    <div class="section-header">
+
+        <div class="section-kicker">
+            Model Performance
+        </div>
+
+        <div class="section-title">
+            Prediction Accuracy
+        </div>
+
+        <div class="section-description">
+            Evaluation results from the latest
+            registered AQI model.
+        </div>
+
+    </div>
+    """
+)
+
+
+best_info = model_metadata.get(
+    "best_model_info"
+)
+
+
+if best_info:
+
+    model_name = best_info[
+        "name"
+    ]
+
+    model_metrics = best_info[
+        "metrics"
+    ]
+
+    perf_cols = st.columns(
+        4,
+        gap="medium",
+    )
+
+    with perf_cols[0]:
+
+        st.metric(
+            "Model",
+            model_name.replace(
+                "_",
+                " "
+            ).title(),
+        )
+
+    with perf_cols[1]:
+
+        st.metric(
+            "R² Score",
+            f"{model_metrics['r2']:.3f}",
+        )
+
+    with perf_cols[2]:
+
+        st.metric(
+            "RMSE",
+            f"{model_metrics['rmse']:.2f}",
+        )
+
+    with perf_cols[3]:
+
+        st.metric(
+            "MAE",
+            f"{model_metrics['mae']:.2f}",
+        )
+
+else:
+
+    st.info(
+        "Model performance metadata "
+        "is not available."
+    )
+    
+    
+# ==================================================
+# SHAP EXPLAINABILITY
+# ==================================================
+
+st.html(
+    """
+    <div class="section-header">
+
+        <div class="section-kicker">
+            Model Explainability
+        </div>
+
+        <div class="section-title">
+            What Drives AQI Predictions?
+        </div>
+
+        <div class="section-description">
+            SHAP feature importance shows which
+            inputs influence the model most.
+        </div>
+
+    </div>
+    """
+)
+
+
+shap_data = model_metadata.get(
+    "shap_importance"
+)
+
+
+if shap_data:
+
+    shap_df = pd.DataFrame(
+        shap_data
+    )
+
+    shap_df = (
+        shap_df
+        .sort_values(
+            "importance",
+            ascending=False,
+        )
+        .head(10)
+    )
+
+    shap_df["feature"] = (
+        shap_df["feature"]
+        .str.replace(
+            "_",
+            " ",
+        )
+        .str.title()
+    )
+
+    shap_chart = px.bar(
+        shap_df,
+        x="importance",
+        y="feature",
+        orientation="h",
+    )
+
+    shap_chart.update_layout(
+        height=430,
+        xaxis_title=(
+            "Mean absolute SHAP value"
+        ),
+        yaxis_title=None,
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+        margin=dict(
+            l=20,
+            r=20,
+            t=20,
+            b=20,
+        ),
+        yaxis=dict(
+            categoryorder="total ascending"
+        ),
+    )
+
+    st.plotly_chart(
+        shap_chart,
+        use_container_width=True,
+    )
+
+    top_feature = (
+        shap_df.iloc[0]["feature"]
+    )
+
+    st.info(
+        f"The most influential feature "
+        f"in the current model is "
+        f"**{top_feature}**."
+    )
+
+else:
+
+    st.info(
+        "SHAP explainability data "
+        "is not available for this model version."
+    )
 
 # ==================================================
 # HEALTH ADVISORY
