@@ -1627,6 +1627,437 @@ else:
         "is not available for this model version."
     )
 
+
+
+# ==================================================
+# HISTORICAL EDA
+# ==================================================
+
+st.html(
+    """
+    <div class="info-panel">
+
+        <div class="info-panel-kicker">
+            Historical Analysis
+        </div>
+
+        <div class="info-panel-title">
+            Islamabad Air Quality Patterns
+        </div>
+
+        <div class="info-panel-description">
+            Historical Feature Store data used to study
+            AQI trends, distributions and pollutant relationships.
+        </div>
+
+    </div>
+    """
+)
+
+
+try:
+
+    historical_df = get_historical_data()
+
+except Exception as error:
+
+    historical_df = None
+
+    st.warning(
+        "Historical analysis data could not be loaded."
+    )
+
+    with st.expander(
+        "Technical details"
+    ):
+        st.code(
+            str(error)
+        )
+
+
+if historical_df is not None:
+
+    historical_df[
+        "timestamp"
+    ] = pd.to_datetime(
+        historical_df["timestamp"]
+    )
+
+
+    # ==================================================
+    # AQI HISTORICAL TREND
+    # ==================================================
+
+    st.subheader(
+        "Historical AQI Trend"
+    )
+
+    trend_chart = px.line(
+        historical_df,
+        x="timestamp",
+        y="us_aqi",
+    )
+
+    trend_chart.update_traces(
+        line=dict(
+            width=2
+        )
+    )
+
+    trend_chart.update_layout(
+        height=400,
+        xaxis_title=None,
+        yaxis_title="US AQI",
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+        font=dict(
+            color="#334155"
+        ),
+        margin=dict(
+            l=20,
+            r=20,
+            t=20,
+            b=20,
+        ),
+        xaxis=dict(
+            showgrid=False,
+        ),
+        yaxis=dict(
+            gridcolor="#eef2f7",
+        ),
+    )
+
+    st.plotly_chart(
+        trend_chart,
+        use_container_width=True,
+    )
+
+
+    # ==================================================
+    # AQI DISTRIBUTION
+    # ==================================================
+
+    left_col, right_col = st.columns(
+        2,
+        gap="medium",
+    )
+
+
+    with left_col:
+
+        st.subheader(
+            "AQI Distribution"
+        )
+
+        distribution_chart = px.histogram(
+            historical_df,
+            x="us_aqi",
+            nbins=30,
+        )
+
+        distribution_chart.update_layout(
+            height=380,
+            xaxis_title="US AQI",
+            yaxis_title="Frequency",
+            plot_bgcolor="white",
+            paper_bgcolor="white",
+            font=dict(
+                color="#334155"
+            ),
+            margin=dict(
+                l=20,
+                r=20,
+                t=20,
+                b=20,
+            ),
+        )
+
+        st.plotly_chart(
+            distribution_chart,
+            use_container_width=True,
+        )
+
+
+    # ==================================================
+    # HOURLY AQI PATTERN
+    # ==================================================
+
+    with right_col:
+
+        st.subheader(
+            "Average AQI by Hour"
+        )
+
+        if "hour" in historical_df.columns:
+
+            hourly_df = (
+                historical_df
+                .groupby(
+                    "hour",
+                    as_index=False,
+                )["us_aqi"]
+                .mean()
+            )
+
+        else:
+
+            temp_df = historical_df.copy()
+
+            temp_df["hour"] = (
+                temp_df[
+                    "timestamp"
+                ].dt.hour
+            )
+
+            hourly_df = (
+                temp_df
+                .groupby(
+                    "hour",
+                    as_index=False,
+                )["us_aqi"]
+                .mean()
+            )
+
+
+        hourly_chart = px.line(
+            hourly_df,
+            x="hour",
+            y="us_aqi",
+            markers=True,
+        )
+
+        hourly_chart.update_layout(
+            height=380,
+            xaxis_title="Hour of Day",
+            yaxis_title="Average AQI",
+            plot_bgcolor="white",
+            paper_bgcolor="white",
+            font=dict(
+                color="#334155"
+            ),
+            margin=dict(
+                l=20,
+                r=20,
+                t=20,
+                b=20,
+            ),
+            xaxis=dict(
+                dtick=2,
+            ),
+            yaxis=dict(
+                gridcolor="#eef2f7",
+            ),
+        )
+
+        st.plotly_chart(
+            hourly_chart,
+            use_container_width=True,
+        )
+
+
+    # ==================================================
+    # DAY OF WEEK AQI
+    # ==================================================
+
+    st.subheader(
+        "Average AQI by Day of Week"
+    )
+
+
+    temp_df = historical_df.copy()
+
+    temp_df[
+        "weekday_name"
+    ] = (
+        temp_df[
+            "timestamp"
+        ].dt.day_name()
+    )
+
+
+    weekday_order = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
+
+
+    weekday_df = (
+        temp_df
+        .groupby(
+            "weekday_name",
+            as_index=False,
+        )["us_aqi"]
+        .mean()
+    )
+
+
+    weekday_df[
+        "weekday_name"
+    ] = pd.Categorical(
+        weekday_df[
+            "weekday_name"
+        ],
+        categories=weekday_order,
+        ordered=True,
+    )
+
+
+    weekday_df = (
+        weekday_df
+        .sort_values(
+            "weekday_name"
+        )
+    )
+
+
+    weekday_chart = px.bar(
+        weekday_df,
+        x="weekday_name",
+        y="us_aqi",
+    )
+
+
+    weekday_chart.update_layout(
+        height=380,
+        xaxis_title=None,
+        yaxis_title="Average AQI",
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+        font=dict(
+            color="#334155"
+        ),
+        margin=dict(
+            l=20,
+            r=20,
+            t=20,
+            b=20,
+        ),
+        yaxis=dict(
+            gridcolor="#eef2f7",
+        ),
+    )
+
+
+    st.plotly_chart(
+        weekday_chart,
+        use_container_width=True,
+    )
+
+
+    # ==================================================
+    # POLLUTANT CORRELATION
+    # ==================================================
+
+    st.subheader(
+        "Pollutant Correlation with AQI"
+    )
+
+
+    pollutant_columns = [
+        "pm2_5",
+        "pm10",
+        "carbon_monoxide",
+        "nitrogen_dioxide",
+        "sulphur_dioxide",
+        "ozone",
+    ]
+
+
+    available_pollutants = [
+        column
+        for column
+        in pollutant_columns
+        if column
+        in historical_df.columns
+    ]
+
+
+    correlation_data = []
+
+    for column in available_pollutants:
+
+        correlation = (
+            historical_df[
+                [
+                    "us_aqi",
+                    column,
+                ]
+            ]
+            .corr()
+            .iloc[0, 1]
+        )
+
+        correlation_data.append(
+            {
+                "Pollutant":
+                    column
+                    .replace(
+                        "_",
+                        " "
+                    )
+                    .upper(),
+
+                "Correlation":
+                    correlation,
+            }
+        )
+
+
+    correlation_df = pd.DataFrame(
+        correlation_data
+    )
+
+
+    correlation_df = (
+        correlation_df
+        .sort_values(
+            "Correlation",
+            ascending=True,
+        )
+    )
+
+
+    correlation_chart = px.bar(
+        correlation_df,
+        x="Correlation",
+        y="Pollutant",
+        orientation="h",
+    )
+
+
+    correlation_chart.update_layout(
+        height=400,
+        xaxis_title=(
+            "Pearson Correlation with AQI"
+        ),
+        yaxis_title=None,
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+        font=dict(
+            color="#334155"
+        ),
+        margin=dict(
+            l=20,
+            r=20,
+            t=20,
+            b=20,
+        ),
+        xaxis=dict(
+            gridcolor="#eef2f7",
+        ),
+    )
+
+
+    st.plotly_chart(
+        correlation_chart,
+        use_container_width=True,
+    )
+
 # ==================================================
 # HEALTH ADVISORY
 # ==================================================
