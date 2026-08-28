@@ -107,17 +107,34 @@ def fetch_and_save_data():
         how="inner",
     )
 
-    df = df.sort_values("timestamp").reset_index(drop=True)
+    df = df.sort_values(
+        "timestamp"
+    ).reset_index(drop=True)
 
     current_hour = (
-        pd.Timestamp.now(tz=TIMEZONE)
+        pd.Timestamp.now(
+            tz=TIMEZONE
+        )
         .floor("h")
         .tz_localize(None)
     )
 
+    # Keep current and historical rows only.
     df = df[
         df["timestamp"] <= current_hour
-    ].tail(1)
+    ].copy()
+
+    # Calculate AQI change while previous
+    # hourly AQI is still available.
+    df["aqi_change"] = (
+        df["us_aqi"].diff()
+    )
+
+    # Keep only the latest hourly row.
+    df = (
+        df.tail(1)
+        .reset_index(drop=True)
+    )
 
     df = df.reset_index(drop=True)
 

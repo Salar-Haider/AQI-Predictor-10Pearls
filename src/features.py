@@ -88,10 +88,16 @@ def add_weather_interaction(df):
 def add_aqi_change(df):
     """Add AQI change from the previous hour."""
 
-    df["aqi_change"] = df["us_aqi"].diff()
+    if "aqi_change" not in df.columns:
 
-    # Only the first row has no previous AQI
-    df["aqi_change"] = df["aqi_change"].fillna(0)
+        df["aqi_change"] = (
+            df["us_aqi"].diff()
+        )
+
+    df["aqi_change"] = (
+        df["aqi_change"]
+        .fillna(0)
+    )
 
     return df
 
