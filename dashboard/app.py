@@ -40,6 +40,10 @@ st.set_page_config(
 )
 
 
+minimum_aqi = row["minimum_aqi"]
+maximum_aqi = row["maximum_aqi"]
+
+
 # ==================================================
 # PROFESSIONAL STYLING
 # ==================================================
@@ -1044,24 +1048,34 @@ forecast_columns = st.columns(
 )
 
 
-for index, row in (
-    daily_df.iterrows()
-):
+for index, row in daily_df.iterrows():
 
     average_aqi = round(
         row["average_aqi"]
     )
 
-    category = (
-        get_aqi_category(
-            average_aqi
-        )
+    minimum_aqi = row[
+        "minimum_aqi"
+    ]
+
+    maximum_aqi = row[
+        "maximum_aqi"
+    ]
+
+    forecast_day = int(
+        row["forecast_day"]
     )
 
-    color = (
-        get_aqi_color(
-            average_aqi
-        )
+    forecast_date = row[
+        "date"
+    ]
+
+    category = get_aqi_category(
+        average_aqi
+    )
+
+    color = get_aqi_color(
+        average_aqi
     )
 
     with forecast_columns[index]:
@@ -1072,70 +1086,41 @@ for index, row in (
 
                 <div
                     class="forecast-accent"
-                    style="
-                        background:
-                        {color};
-                    "
+                    style="background:{color};"
                 ></div>
 
-                <div
-                    class="forecast-day"
-                >
-                    Forecast Day
-                    {int(
-                        row[
-                            "forecast_day"
-                        ]
-                    )}
+                <div class="forecast-day">
+                    Forecast Day {forecast_day}
                 </div>
 
-                <div
-                    class="forecast-date"
-                >
-                    {row["date"]}
+                <div class="forecast-date">
+                    {forecast_date}
                 </div>
 
                 <div
                     class="forecast-aqi"
-                    style="
-                        color:
-                        {color};
-                    "
+                    style="color:{color};"
                 >
                     {average_aqi}
                 </div>
 
-                <div
-                    class="forecast-category"
-                >
+                <div class="forecast-category">
                     {category}
                 </div>
 
-                <div
-                    class="forecast-range"
-                >
+                <div class="forecast-range">
 
                     <span>
                         Minimum
                         <strong>
-                            {
-                                row[
-                                    "minimum_aqi"
-                                ]
-                                :.0f
-                            }
+                            {minimum_aqi:.0f}
                         </strong>
                     </span>
 
                     <span>
                         Maximum
                         <strong>
-                            {
-                                row[
-                                    "maximum_aqi"
-                                ]
-                                :.0f
-                            }
+                            {maximum_aqi:.0f}
                         </strong>
                     </span>
 
@@ -1144,7 +1129,6 @@ for index, row in (
             </div>
             """
         )
-
 
 # ==================================================
 # 72-HOUR TREND
