@@ -73,7 +73,7 @@ The best-performing model is automatically selected and stored in the Hopsworks 
 
 ## 🏗️ System Architecture
 
-```text
+
 ┌────────────────────────────────────────────────────────────────────────┐
 │        Historical Backfill + Hourly Data Ingestion                     │
 │ GitHub Actions → Open-Meteo Weather API + Air Quality API              │
@@ -223,7 +223,7 @@ Latest Weather & Pollution Data
 Feature Engineering
        ↓
 Hopsworks Feature Store
-```
+
 
 ### Training Pipeline
 
