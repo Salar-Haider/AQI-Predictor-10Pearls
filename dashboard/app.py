@@ -48,7 +48,7 @@ st.set_page_config(
 # Styling
 # --------------------------------------------------
 
-st.markdown(
+st.html(
     """
     <style>
 
@@ -191,7 +191,7 @@ st.markdown(
 
     </style>
     """,
-    unsafe_allow_html=True,
+    
 )
 
 
@@ -445,136 +445,101 @@ current_color = get_aqi_color(
 # Hero / Current AQI
 # --------------------------------------------------
 
-st.markdown(
-    dedent(
-        f"""
-        <div class="hero-card">
-            <div class="dashboard-title">
-                ISLAMABAD, PAKISTAN · CURRENT AIR QUALITY
-            </div>
-
-            <div class="hero-time">
-                UPDATED {current["time"]}
-            </div>
-
-            <div
-                class="hero-aqi"
-                style="color:{current_color};"
-            >
-                {current_aqi}
-            </div>
-
-            <div class="hero-category">
-                {current_category}
-            </div>
-
-            <div class="hero-message">
-                {current_message}
-            </div>
+st.html(
+    f"""
+    <div class="hero-card">
+        <div class="dashboard-title">
+            ISLAMABAD, PAKISTAN · CURRENT AIR QUALITY
         </div>
-        """
-    ),
-    unsafe_allow_html=True,
+        <div class="hero-time">
+            UPDATED {current["time"]}
+        </div>
+        <div
+            class="hero-aqi"
+            style="color:{current_color};"
+        >
+            {current_aqi}
+        </div>
+        <div class="hero-category">
+            {current_category}
+        </div>
+        <div class="hero-message">
+            {current_message}
+        </div>
+    </div>
+    """
 )
 
 
 # --------------------------------------------------
 # Current pollutant cards
 # --------------------------------------------------
-metric_columns = st.columns(
-    4
-)
+metric_columns = st.columns(4)
 
 
 with metric_columns[0]:
-    st.markdown(
-        dedent(
-            f"""
-            <div class="metric-card">
-                <div class="metric-label">
-                    PM2.5
-                </div>
-
-                <div class="metric-value">
-                    {current["pm2_5"]:.1f}
-                </div>
-
-                <div class="metric-label">
-                    μg/m³
-                </div>
+    st.html(
+        f"""
+        <div class="metric-card">
+            <div class="metric-label">PM2.5</div>
+            <div class="metric-value">
+                {current["pm2_5"]:.1f}
             </div>
-            """
-        ),
-        unsafe_allow_html=True,
+            <div class="metric-label">
+                μg/m³
+            </div>
+        </div>
+        """
     )
 
 
 with metric_columns[1]:
-    st.markdown(
-        dedent(
-            f"""
-            <div class="metric-card">
-                <div class="metric-label">
-                    PM10
-                </div>
-
-                <div class="metric-value">
-                    {current["pm10"]:.1f}
-                </div>
-
-                <div class="metric-label">
-                    μg/m³
-                </div>
+    st.html(
+        f"""
+        <div class="metric-card">
+            <div class="metric-label">PM10</div>
+            <div class="metric-value">
+                {current["pm10"]:.1f}
             </div>
-            """
-        ),
-        unsafe_allow_html=True,
+            <div class="metric-label">
+                μg/m³
+            </div>
+        </div>
+        """
     )
 
 
 with metric_columns[2]:
-    st.markdown(
-        dedent(
-            f"""
-            <div class="metric-card">
-                <div class="metric-label">
-                    Nitrogen Dioxide
-                </div>
-
-                <div class="metric-value">
-                    {current["nitrogen_dioxide"]:.1f}
-                </div>
-
-                <div class="metric-label">
-                    μg/m³
-                </div>
+    st.html(
+        f"""
+        <div class="metric-card">
+            <div class="metric-label">
+                Nitrogen Dioxide
             </div>
-            """
-        ),
-        unsafe_allow_html=True,
+            <div class="metric-value">
+                {current["nitrogen_dioxide"]:.1f}
+            </div>
+            <div class="metric-label">
+                μg/m³
+            </div>
+        </div>
+        """
     )
 
 
 with metric_columns[3]:
-    st.markdown(
-        dedent(
-            f"""
-            <div class="metric-card">
-                <div class="metric-label">
-                    Ozone
-                </div>
-
-                <div class="metric-value">
-                    {current["ozone"]:.1f}
-                </div>
-
-                <div class="metric-label">
-                    μg/m³
-                </div>
+    st.html(
+        f"""
+        <div class="metric-card">
+            <div class="metric-label">Ozone</div>
+            <div class="metric-value">
+                {current["ozone"]:.1f}
             </div>
-            """
-        ),
-        unsafe_allow_html=True,
+            <div class="metric-label">
+                μg/m³
+            </div>
+        </div>
+        """
     )
 
 # --------------------------------------------------
@@ -644,9 +609,7 @@ with refresh_col:
 # 3 forecast cards
 # --------------------------------------------------
 
-forecast_columns = st.columns(
-    3
-)
+forecast_columns = st.columns(3)
 
 
 for index, row in daily_df.iterrows():
@@ -665,10 +628,9 @@ for index, row in daily_df.iterrows():
 
     with forecast_columns[index]:
 
-        st.markdown(
+        st.html(
             f"""
             <div class="forecast-card">
-
                 <div class="forecast-day">
                     DAY {int(row["forecast_day"])}
                     · {row["date"]}
@@ -685,9 +647,7 @@ for index, row in daily_df.iterrows():
                     {category}
                 </div>
 
-                <br>
-
-                <div>
+                <div style="margin-top:18px;">
                     Minimum:
                     <strong>
                         {row["minimum_aqi"]:.0f}
@@ -700,22 +660,20 @@ for index, row in daily_df.iterrows():
                         {row["maximum_aqi"]:.0f}
                     </strong>
                 </div>
-
             </div>
-            """,
-            unsafe_allow_html=True,
+            """
         )
-
-
+        
 # --------------------------------------------------
 # 72-hour forecast chart
 # --------------------------------------------------
 
-st.markdown(
-    '<div class="section-title">'
-    '72-Hour AQI Trend'
-    '</div>',
-    unsafe_allow_html=True,
+st.html(
+    """
+    <div class="section-title">
+        3-Day AQI Forecast
+    </div>
+    """
 )
 
 
@@ -761,9 +719,9 @@ st.plotly_chart(
 # --------------------------------------------------
 
 st.markdown(
-    '<div class="section-title">'
-    'Forecast Health Alert'
-    '</div>',
+    """<div class="section-title">
+    Forecast Health Alert
+    </div>""",
     unsafe_allow_html=True,
 )
 
