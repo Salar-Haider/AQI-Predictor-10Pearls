@@ -368,7 +368,4 @@ AQI-Predictor-10Pearls/
 
 **Status:** Active & Maintained
 
-```
 
-This architecture now follows the same **large boxed pipeline style** as the example, but every block matches what your project actually implements rather than copying KSERVE, ensemble serving, or model-selection features from the other repository. 
-```
