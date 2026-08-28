@@ -13,6 +13,10 @@ The **Islamabad AQI Predictor** is a fully automated machine learning applicatio
 
 The system combines data collection, feature engineering, model training, model versioning, explainability, automation, and interactive visualization in a serverless workflow.
 
+## 🌐 Live Demo
+
+[Open the Streamlit Dashboard](https://predictor-10pearls.streamlit.app/)
+
 ### Key Highlights
 
 - 🌫️ **Current AQI Monitoring** for Islamabad
