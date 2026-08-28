@@ -11,6 +11,7 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
+from src import model_registry
 from src.config import (
     AIR_QUALITY_API_URL,
     LATITUDE,
@@ -214,10 +215,19 @@ def download_best_model(project):
 
     model_registry = project.get_model_registry()
 
-    model = model_registry.get_best_model(
-        name=MODEL_NAME,
-        metric="r2",
-        direction="max",
+    models = model_registry.get_models(
+        name=MODEL_NAME
+    )
+
+    if not models:
+        raise ValueError(
+            f"No registered model found: {MODEL_NAME}"
+        )
+
+    model = max(
+        models,
+        key=lambda registered_model:
+            registered_model.version,
     )
 
     if model is None:

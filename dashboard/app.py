@@ -86,6 +86,114 @@ st.html(
 
 
     /* ==============================
+   LIGHT CONTENT SECTIONS
+============================== */
+
+.info-panel {
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff,
+            #f8fafc
+        );
+
+    border:
+        1px solid #e2e8f0;
+
+    border-radius: 22px;
+
+    padding:
+        1.6rem
+        1.8rem;
+
+    margin-top: 1.4rem;
+    margin-bottom: 1rem;
+
+    box-shadow:
+        0 10px 35px
+        rgba(15,23,42,0.06);
+}
+
+.info-panel-kicker {
+    color: #64748b;
+
+    font-size: 0.72rem;
+
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.12rem;
+}
+
+.info-panel-title {
+    color: #0f172a;
+
+    font-size: 1.65rem;
+
+    font-weight: 750;
+
+    margin-top: 0.25rem;
+}
+
+.info-panel-description {
+    color: #64748b;
+
+    font-size: 0.9rem;
+
+    margin-top: 0.35rem;
+
+    line-height: 1.55;
+}
+
+
+/* Streamlit metric cards */
+
+[data-testid="stMetric"] {
+
+    background:
+        linear-gradient(
+            145deg,
+            #ffffff,
+            #f8fafc
+        );
+
+    border:
+        1px solid #e2e8f0;
+
+    padding: 1.25rem;
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 8px 25px
+        rgba(15,23,42,0.05);
+}
+
+
+/* Metric label */
+
+[data-testid="stMetricLabel"] {
+    color: #64748b !important;
+    font-weight: 650 !important;
+}
+
+
+/* Metric value */
+
+[data-testid="stMetricValue"] {
+    color: #0f172a !important;
+    font-weight: 750 !important;
+}
+
+
+/* Information message */
+
+[data-testid="stAlert"] {
+    border-radius: 16px;
+}
+
+    /* ==============================
        TOP BRAND
     ============================== */
 
@@ -1298,25 +1406,25 @@ st.plotly_chart(
 
 st.html(
     """
-    <div class="section-header">
+    <div class="info-panel">
 
-        <div class="section-kicker">
+        <div class="info-panel-kicker">
             Model Performance
         </div>
 
-        <div class="section-title">
+        <div class="info-panel-title">
             Prediction Accuracy
         </div>
 
-        <div class="section-description">
-            Evaluation results from the latest
-            registered AQI model.
+        <div class="info-panel-description">
+            Performance of the latest trained AQI
+            forecasting model on the chronological
+            holdout dataset.
         </div>
 
     </div>
     """
 )
-
 
 best_info = model_metadata.get(
     "best_model_info"
@@ -1338,15 +1446,17 @@ if best_info:
         gap="medium",
     )
 
+
     with perf_cols[0]:
 
         st.metric(
-            "Model",
+            "Selected Model",
             model_name.replace(
                 "_",
                 " "
             ).title(),
         )
+
 
     with perf_cols[1]:
 
@@ -1355,12 +1465,14 @@ if best_info:
             f"{model_metrics['r2']:.3f}",
         )
 
+
     with perf_cols[2]:
 
         st.metric(
             "RMSE",
             f"{model_metrics['rmse']:.2f}",
         )
+
 
     with perf_cols[3]:
 
@@ -1369,6 +1481,7 @@ if best_info:
             f"{model_metrics['mae']:.2f}",
         )
 
+
 else:
 
     st.info(
@@ -1376,26 +1489,26 @@ else:
         "is not available."
     )
     
-    
 # ==================================================
 # SHAP EXPLAINABILITY
 # ==================================================
 
 st.html(
     """
-    <div class="section-header">
+    <div class="info-panel">
 
-        <div class="section-kicker">
+        <div class="info-panel-kicker">
             Model Explainability
         </div>
 
-        <div class="section-title">
-            What Drives AQI Predictions?
+        <div class="info-panel-title">
+            What Drives the Forecast?
         </div>
 
-        <div class="section-description">
-            SHAP feature importance shows which
-            inputs influence the model most.
+        <div class="info-panel-description">
+            SHAP analysis measures how strongly each
+            feature influences the AQI prediction model.
+            Larger values indicate greater overall impact.
         </div>
 
     </div>
@@ -1427,10 +1540,11 @@ if shap_data:
         shap_df["feature"]
         .str.replace(
             "_",
-            " ",
+            " "
         )
         .str.title()
     )
+
 
     shap_chart = px.bar(
         shap_df,
@@ -1439,39 +1553,65 @@ if shap_data:
         orientation="h",
     )
 
+
+    shap_chart.update_traces(
+        marker_line_width=0,
+    )
+
+
     shap_chart.update_layout(
-        height=430,
+
+        height=460,
+
         xaxis_title=(
-            "Mean absolute SHAP value"
+            "Average impact on model output"
         ),
+
         yaxis_title=None,
-        plot_bgcolor="white",
-        paper_bgcolor="white",
-        margin=dict(
-            l=20,
-            r=20,
-            t=20,
-            b=20,
+
+        plot_bgcolor="#ffffff",
+
+        paper_bgcolor="#ffffff",
+
+        font=dict(
+            color="#334155",
         ),
+
+        margin=dict(
+            l=25,
+            r=25,
+            t=25,
+            b=25,
+        ),
+
+        xaxis=dict(
+            gridcolor="#edf2f7",
+            zeroline=False,
+        ),
+
         yaxis=dict(
-            categoryorder="total ascending"
+            categoryorder="total ascending",
         ),
     )
+
 
     st.plotly_chart(
         shap_chart,
         use_container_width=True,
     )
 
+
     top_feature = (
         shap_df.iloc[0]["feature"]
     )
+
 
     st.info(
         f"The most influential feature "
         f"in the current model is "
         f"**{top_feature}**."
     )
+
 
 else:
 
@@ -1486,14 +1626,20 @@ else:
 
 st.html(
     """
-    <div class="section-header">
+    <div class="info-panel">
 
-        <div class="section-kicker">
-            Health Information
+        <div class="info-panel-kicker">
+            Health Guidance
         </div>
 
-        <div class="section-title">
-            Forecast Advisory
+        <div class="info-panel-title">
+            72-Hour Health Advisory
+        </div>
+
+        <div class="info-panel-description">
+            Health guidance based on the highest
+            AQI level predicted during the next
+            three days.
         </div>
 
     </div>
