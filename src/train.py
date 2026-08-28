@@ -5,6 +5,8 @@ import json
 import math
 import os
 import pickle
+import numpy as np
+import shap
 
 import hopsworks
 import pandas as pd
@@ -229,6 +231,106 @@ def evaluate_model(model, X_test, y_test):
     }
 
 
+
+def create_shap_explanation(
+    model,
+    X_test,
+    feature_columns,
+):
+    """Calculate global SHAP feature importance."""
+
+    print(
+        "\nGenerating SHAP explanations..."
+    )
+
+    # Keep SHAP fast in GitHub Actions.
+    sample_size = min(
+        300,
+        len(X_test),
+    )
+
+    X_sample = (
+        X_test
+        .tail(sample_size)
+        .copy()
+    )
+
+    try:
+
+        explainer = shap.Explainer(
+            model,
+            X_sample,
+        )
+
+        shap_values = explainer(
+            X_sample
+        )
+
+        importance_values = np.abs(
+            shap_values.values
+        ).mean(axis=0)
+
+    except Exception:
+
+        # TreeExplainer works well for
+        # Gradient Boosting / Random Forest / XGBoost.
+        explainer = shap.TreeExplainer(
+            model
+        )
+
+        shap_values = explainer.shap_values(
+            X_sample
+        )
+
+        importance_values = np.abs(
+            shap_values
+        ).mean(axis=0)
+
+    importance_df = pd.DataFrame(
+        {
+            "feature": feature_columns,
+            "importance": importance_values,
+        }
+    )
+
+    importance_df = (
+        importance_df
+        .sort_values(
+            "importance",
+            ascending=False,
+        )
+        .reset_index(drop=True)
+    )
+
+    shap_path = (
+        MODEL_DIR
+        / "shap_importance.json"
+    )
+
+    importance_df.to_json(
+        shap_path,
+        orient="records",
+        indent=4,
+    )
+
+    print(
+        "\nTop SHAP features:"
+    )
+
+    print(
+        importance_df.head(10)
+    )
+
+    print(
+        f"\nSaved SHAP importance to "
+        f"{shap_path}"
+    )
+
+    return importance_df
+
+
+
+
 def train_models():
     """Train, evaluate and save the best AQI model."""
 
@@ -380,6 +482,13 @@ def train_models():
             file,
             indent=4,
         )
+
+
+    create_shap_explanation(
+        model=best_model,
+        X_test=X_test,
+        feature_columns=feature_columns,
+    )
 
     print(
         f"\nSaved best model to {model_path}"
