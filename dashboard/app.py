@@ -26,7 +26,7 @@ from src.config import (
 )
 
 from src.inference import run_forecast
-
+from src.eda import load_historical_data
 
 # ==================================================
 # PAGE CONFIG
@@ -851,6 +851,13 @@ def generate_forecast():
 
     return run_forecast()
 
+
+@st.cache_data(ttl=3600)
+def get_historical_data():
+
+    configure_secrets()
+
+    return load_historical_data()
 
 def create_daily_summary(df):
 
