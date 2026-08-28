@@ -136,88 +136,156 @@ st.html(
     ============================== */
 
     .hero-card {
-        border-radius: 30px;
-        padding: 2.5rem 2.8rem;
+        border-radius: 28px;
+        padding: 2.4rem 2.7rem;
 
         background:
             radial-gradient(
-                circle at 85% 10%,
-                rgba(56, 189, 248, 0.14),
+                circle at 88% 12%,
+                rgba(249,115,22,0.13),
                 transparent 32%
-            ),
-            radial-gradient(
-                circle at 95% 85%,
-                rgba(249, 115, 22, 0.14),
-                transparent 35%
             ),
             linear-gradient(
                 135deg,
-                #111c2e,
-                #162235
+                #0f172a,
+                #172033
             );
 
         border: 1px solid rgba(255,255,255,0.08);
 
         box-shadow:
-            0 28px 80px rgba(0,0,0,0.28);
+            0 24px 70px rgba(0,0,0,0.28);
 
         margin-bottom: 1.6rem;
+
+        font-family:
+            Inter,
+            ui-sans-serif,
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            sans-serif;
     }
 
-    .hero-location {
-        color: #94a3b8;
-        font-size: 0.83rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.18rem;
-    }
-
-    .hero-time {
-        color: #64748b;
-        font-size: 0.82rem;
-        margin-top: 0.55rem;
-    }
-
-    .hero-main {
+    .hero-top {
         display: flex;
-        align-items: flex-end;
         justify-content: space-between;
-        margin-top: 1.6rem;
-        gap: 2rem;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 2.1rem;
+    }
+
+    .hero-title {
+        color: #f8fafc;
+        font-size: 1.35rem;
+        font-weight: 700;
+        letter-spacing: -0.02rem;
+    }
+
+    .hero-subtitle {
+        color: #94a3b8;
+        font-size: 0.88rem;
+        margin-top: 0.35rem;
+    }
+
+    .hero-live {
+        color: #86efac;
+        background: rgba(34,197,94,0.10);
+        border: 1px solid rgba(34,197,94,0.22);
+        padding: 0.45rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        letter-spacing: 0.04rem;
+    }
+
+    .hero-content {
+        display: grid;
+        grid-template-columns: 0.8fr 1.5fr;
+        gap: 3rem;
+        align-items: center;
+    }
+
+    .aqi-number-wrap {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
     .hero-aqi {
-        font-size: 7.4rem;
-        line-height: 0.95;
+        font-size: 7rem;
+        line-height: 0.9;
         font-weight: 800;
-        letter-spacing: -0.35rem;
+        letter-spacing: -0.28rem;
     }
 
-    .aqi-label {
+    .aqi-caption {
+        color: #94a3b8;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.09rem;
+        margin-top: 0.8rem;
+    }
+
+    .status-block {
+        border-left: 1px solid rgba(255,255,255,0.10);
+        padding-left: 2.2rem;
+    }
+
+    .status-label {
         color: #64748b;
-        font-size: 0.9rem;
-        margin-top: 0.5rem;
-        letter-spacing: 0.08rem;
-    }
-
-    .hero-status {
-        max-width: 620px;
-        padding-bottom: 0.5rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.09rem;
+        font-weight: 700;
     }
 
     .hero-category {
-        color: white;
+        color: #f8fafc;
         font-size: 2rem;
         font-weight: 750;
         line-height: 1.2;
+        margin-top: 0.55rem;
     }
 
     .hero-message {
         color: #cbd5e1;
-        margin-top: 0.8rem;
         font-size: 1rem;
-        line-height: 1.65;
+        line-height: 1.7;
+        margin-top: 0.8rem;
+        max-width: 650px;
     }
+
+    .hero-updated {
+        color: #64748b;
+        font-size: 0.78rem;
+        margin-top: 1.1rem;
+    }
+
+    @media (max-width: 800px) {
+
+        .hero-content {
+            grid-template-columns: 1fr;
+            gap: 1.8rem;
+        }
+
+        .status-block {
+            border-left: none;
+            padding-left: 0;
+            border-top: 1px solid rgba(255,255,255,0.10);
+            padding-top: 1.5rem;
+        }
+
+        .hero-aqi {
+            font-size: 5.2rem;
+        }
+
+        .hero-category {
+            font-size: 1.55rem;
+        }
+    }
+
 
 
     /* ==============================
@@ -505,8 +573,8 @@ def get_aqi_message(aqi):
 
     if aqi <= 150:
         return (
-            "Sensitive groups may experience health effects. "
-            "Consider reducing prolonged outdoor activity."
+            " Sensitive individuals should consider reducing prolonged. "
+            "or strenuous outdoor activity."
         )
 
     if aqi <= 200:
@@ -815,48 +883,58 @@ st.html(
     f"""
     <div class="hero-card">
 
-        <div class="hero-location">
-            Islamabad, Pakistan
-            · Current Air Quality
-        </div>
-
-        <div class="hero-time">
-            Last updated:
-            {current["time"]}
-        </div>
-
-        <div class="hero-main">
+        <div class="hero-top">
 
             <div>
+                <div class="hero-title">
+                    Islamabad Air Quality
+                </div>
+
+                <div class="hero-subtitle">
+                    Live atmospheric conditions
+                    · Islamabad, Pakistan
+                </div>
+            </div>
+
+            <div class="hero-live">
+                ● LIVE
+            </div>
+
+        </div>
+
+        <div class="hero-content">
+
+            <div class="aqi-number-wrap">
 
                 <div
                     class="hero-aqi"
-                    style="
-                        color:
-                        {current_color};
-                    "
+                    style="color:{current_color};"
                 >
                     {current_aqi}
                 </div>
 
-                <div class="aqi-label">
-                    US AQI
+                <div class="aqi-caption">
+                    Current US AQI
                 </div>
 
             </div>
 
-            <div class="hero-status">
+            <div class="status-block">
 
-                <div
-                    class="hero-category"
-                >
+                <div class="status-label">
+                    Air Quality Status
+                </div>
+
+                <div class="hero-category">
                     {current_category}
                 </div>
 
-                <div
-                    class="hero-message"
-                >
+                <div class="hero-message">
                     {current_message}
+                </div>
+
+                <div class="hero-updated">
+                    Updated {current["time"]} · PKT
                 </div>
 
             </div>
