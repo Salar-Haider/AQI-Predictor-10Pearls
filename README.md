@@ -73,7 +73,7 @@ The best-performing model is automatically selected and stored in the Hopsworks 
 
 ## 🏗️ System Architecture
 
-
+```
 ┌────────────────────────────────────────────────────────────────────────┐
 │        Historical Backfill + Hourly Data Ingestion                     │
 │ GitHub Actions → Open-Meteo Weather API + Air Quality API              │
@@ -113,7 +113,7 @@ The best-performing model is automatically selected and stored in the Hopsworks 
 │ Current AQI → 3-Day Forecast → Trend Charts → Model Metrics            │
 │          → SHAP → EDA → Health Advisory → Hourly Data                  │
 └────────────────────────────────────────────────────────────────────────┘
-
+```
 
 ---
 
