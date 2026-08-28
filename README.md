@@ -1,4 +1,4 @@
-````markdown
+
 # 🌍 Islamabad AQI Predictor
 
 > **A 100% Serverless, End-to-End Air Quality Index Forecasting System for Islamabad, Pakistan**
@@ -113,7 +113,7 @@ The best-performing model is automatically selected and stored in the Hopsworks 
 │ Current AQI → 3-Day Forecast → Trend Charts → Model Metrics            │
 │          → SHAP → EDA → Health Advisory → Hourly Data                  │
 └────────────────────────────────────────────────────────────────────────┘
-````
+
 
 ---
 
