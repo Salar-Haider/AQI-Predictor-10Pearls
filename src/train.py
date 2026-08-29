@@ -1,5 +1,3 @@
-# src/train.py
-
 from pathlib import Path
 import json
 import math

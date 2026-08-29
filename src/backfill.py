@@ -1,4 +1,3 @@
-# src/backfill.py
 
 from datetime import date, timedelta
 from pathlib import Path

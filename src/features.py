@@ -1,5 +1,3 @@
-# src/features.py
-
 from pathlib import Path
 import math
 

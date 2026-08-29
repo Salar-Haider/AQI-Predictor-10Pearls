@@ -1,5 +1,3 @@
-# src/feature_store.py
-
 import os
 
 import hopsworks

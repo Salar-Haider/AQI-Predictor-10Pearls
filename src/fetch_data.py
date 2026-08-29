@@ -1,4 +1,3 @@
-# src/fetch_data.py
 
 from pathlib import Path
 

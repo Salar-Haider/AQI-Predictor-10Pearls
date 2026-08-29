@@ -1,5 +1,3 @@
-# src/inference.py
-
 import json
 import math
 import os
